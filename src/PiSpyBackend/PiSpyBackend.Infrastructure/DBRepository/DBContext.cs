@@ -6,7 +6,7 @@ namespace PiSpyBackend.Infrastructure
 {
     public class AppDbContext : DbContext
     {
-        private string connectionString = "server=localhost;port=3306;user=root;database=PispyDatabase";
+        private string connectionString = "server=localhost;database=PispyDatabase;User=efcore;Password=12345";
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Key> keys { get; set; }

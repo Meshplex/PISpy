@@ -2,6 +2,11 @@ namespace PiSpyBackend.Application
 {
     class PiezoService
     {
-        // TODO: Methoden für ein Spersound, Entspersound und Alarm
+        public void PlayAlarmSound(){}
+
+        public void PlayActivationSound(){}
+
+        public void PlayDeactivationSound(){}
+    
     }
 }

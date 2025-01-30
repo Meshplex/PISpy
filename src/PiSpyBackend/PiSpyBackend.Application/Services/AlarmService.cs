@@ -5,6 +5,11 @@ namespace PiSpyBackend.Application
 {
     class AlarmService
     {
+
+        // In dieser Klasse müssen alle sensoren überwacht werden also auch gestartet werden
+
+
+
         public bool AlarmState { get; private set; }
         private AppDbContext Context { get; set; }
 

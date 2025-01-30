@@ -13,10 +13,34 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/test", () =>
+app.MapPut("/pispy/api/createUser", () =>
 {
-    return "Hello World";
-})
-.WithOpenApi();
+
+});
+
+app.MapDelete("/pispy/api/deleteUser", () =>
+{
+
+});
+
+app.MapPost("/pispy/api/updateUser", () =>
+{
+
+});
+
+app.MapPut("/pispy/api/activateAlarm", () =>
+{
+
+});
+
+app.MapPut("/pispy/api/deactivateAlarm", () =>
+{
+
+});
+
+app.MapGet("/pispy/api/getAlarmStatus", () =>
+{
+
+});
 
 app.Run();
