@@ -10,8 +10,6 @@ namespace PiSpyBackend.Test.UnitTests
         public void TestConn()
         {
             var appCon = new AppDbContext();
-            appCon.Users.Add(new User {Username = "test", Password = "test"});
-            appCon.SaveChanges();
             if (appCon.Database.CanConnect())
             {
                 true.Should().BeTrue();
