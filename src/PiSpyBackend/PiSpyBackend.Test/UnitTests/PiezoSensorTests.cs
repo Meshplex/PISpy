@@ -14,7 +14,7 @@ namespace SensorTests
 
             using (var buzzer = new Buzzer(buzzerPin))
             {
-                buzzer.Beep(frequency: 1000, duration: 500);
+                buzzer.Beep(frequency: 440, duration: 500);
             }
         }
     }
