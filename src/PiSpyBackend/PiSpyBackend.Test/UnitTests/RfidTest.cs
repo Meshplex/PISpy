@@ -1,9 +1,17 @@
 using PiSpyBackend.Application;
+using Xunit.Abstractions;
 
 namespace PiSpyBackend.Tests.Integration
 {
     public class RfidServiceIntegrationTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public RfidServiceIntegrationTests(ITestOutputHelper testOutputHelper)
+        {     
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void Run_WhenCalled_ReturnsUid()
         {
@@ -14,7 +22,7 @@ namespace PiSpyBackend.Tests.Integration
             var result = service.Run();
             
             // Assert
-            Console.WriteLine(result);
+            _testOutputHelper.WriteLine((string)result);
             Assert.NotNull(result);
         }
     }
