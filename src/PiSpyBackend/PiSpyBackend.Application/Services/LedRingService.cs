@@ -1,6 +1,8 @@
+using PiSpyBackend.Domain.Interfaces;
+
 namespace PiSpyBackend.Application
 {
-    class LedRingService
+    class LedRingService : ISensorService
     {
         public void ActiveAlarmLed()
         {

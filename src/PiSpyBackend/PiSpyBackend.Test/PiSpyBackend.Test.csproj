@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../PiSpyBackend.Application/PiSpyBackend.Application.csproj" />
     <ProjectReference Include="..\PiSpyBackend.Infrastructure\PiSpyBackend.Infrastructure.csproj" />
   </ItemGroup>
 
