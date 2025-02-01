@@ -18,5 +18,10 @@ namespace PiSpyBackend.Application
         {
             // Led Soll Rot Aufleuchten sync zum pieper wenn der Alarm an ist 
         }
+
+        public object Run()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

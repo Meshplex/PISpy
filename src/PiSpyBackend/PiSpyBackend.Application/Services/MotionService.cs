@@ -6,5 +6,9 @@ namespace PiSpyBackend.Application
     {
         // TODO: Methode welche bwegung trackt und Alarm erstellt wenn bewegung erkannt wird
         // Sobald der Alarm scharf ist soll der Bewegungssensor dauerthaft aktiv sein und Alarme melden
+        public object Run()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
