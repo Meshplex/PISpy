@@ -11,20 +11,51 @@ namespace PiSpyBackend.Test.UnitTests
         [Fact]
         public void SetAllLedsToRedTest()
         {
-            Process process = new Process();
-                
-                // Wir setzen "sudo" als auszuführendes Programm
+            // Erstelle und konfiguriere den Prozess
+            using (Process process = new Process())
+            {
                 process.StartInfo.FileName = "sudo";
-                // Übergabe der Argumente: Pfad zu Python in der virtuellen Umgebung und das Skript
+                // Hier wird der Befehl über sudo ausgeführt:
                 process.StartInfo.Arguments = "/home/admin/neo_pixel_project/venv/bin/python led_ring_rot.py";
                 
-                // Damit wir die Ausgaben einsehen können:
+                // Damit wir Ausgaben einlesen können
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.RedirectStandardError = true;
+                
+                try
+                {
+                    // Starte das Python-Skript
+                    process.Start();
 
-                // Start des Prozesses
-                process.Start();
+                    // Warte 5 Sekunden (5000 Millisekunden)
+                    Thread.Sleep(5000);
+
+                    // Falls das Skript noch läuft, beende den Prozess
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                    }
+
+                    // Optional: Lese die Ausgaben des Skripts
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+
+                    // Warte, bis der Prozess endgültig beendet ist
+                    process.WaitForExit();
+
+                    // Mit einer Assertion kannst du überprüfen, dass der Prozess beendet ist
+                    Assert.True(process.HasExited, "Der Prozess wurde nicht beendet.");
+
+                    // Optional: Weitere Assertions, z.B. dass keine Fehlerausgabe vorliegt
+                    Assert.True(string.IsNullOrEmpty(error), $"Fehler beim Ausführen des Skripts: {error}");
+                }
+                catch (Exception ex)
+                {
+                    // Falls ein Fehler auftritt, schlägt der Test fehl
+                    Assert.False(true, $"Fehler beim Ausführen des Python-Skripts: {ex.Message}");
+                }
+            }
         }
     }
 }
