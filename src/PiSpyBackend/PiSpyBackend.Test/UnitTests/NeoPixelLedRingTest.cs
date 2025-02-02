@@ -16,7 +16,7 @@ namespace PiSpyBackend.Test.UnitTests
             // Kanal für die LEDs konfigurieren
             settings.Channels[0] = new Channel(
                 ledCount: 24,       // Anzahl der LEDs
-                gpioPin: 21,        // GPIO 21
+                gpioPin: 19,        // GPIO 21
                 brightness: 255,    // Helligkeit (0-255)
                 invert: false,      // Signal nicht invertieren
                 stripType: StripType.WS2812_STRIP // Typ der LEDs
