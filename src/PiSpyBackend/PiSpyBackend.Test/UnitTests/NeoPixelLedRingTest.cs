@@ -1,7 +1,6 @@
-
-using rpi_ws281x;
 using System.Device.Spi;
 using System.Drawing;
+using rpi_ws281x;
 
 namespace PiSpyBackend.Test.UnitTests
 {
@@ -11,23 +10,15 @@ namespace PiSpyBackend.Test.UnitTests
         [Fact]
         public void SetAllLedsToRedTest()
         {
-            var settings = Settings.CreateDefaultSettings();
-        
-            // Kanal für die LEDs konfigurieren
-            settings.Channels[0] = new Channel(
-                ledCount: 24,       // Anzahl der LEDs
-                gpioPin: 19,        // GPIO 21
-                brightness: 255,    // Helligkeit (0-255)
-                invert: false,      // Signal nicht invertieren
-                stripType: StripType.WS2812_STRIP // Typ der LEDs
-            );
+            var settings = Settings.CreateDefaultSettings(false);
+            var controller = settings.AddController(16, Pin.Gpio19, StripType.WS2812_STRIP, ControllerType.PWM0, 255, false);
 
-        // LED-Controller erstellen
-            var controller = new WS281x(settings);
-
-        // Beispiel: Erste LED auf Rot setzen
-            controller.SetLEDColor(0, 23, Color.Red);
-            controller.Render(); // Änderungen anzeigen
+            using (var rpi = new WS281x(settings))
+            {
+                controller.SetLED(0, Color.Blue);
+                controller.SetLED(1, Color.Red);
+                rpi.Render();
+            };
         }
     }
 }
