@@ -25,7 +25,7 @@ namespace PiSpyBackend.Test.UnitTests
         }
 
         [Fact]
-        public void SetAllLedsToRed_Test()
+        public void SetAllLedsToRedTest()
         {
             for (int i = 0; i < LedCount; i++)
             {
@@ -41,7 +41,7 @@ namespace PiSpyBackend.Test.UnitTests
         }
 
         [Fact]
-        public void CycleColors_Test()
+        public void CycleColorsTest()
         {
             // Eine Auswahl an Farben zum Durchlaufen.
             Color[] colors = new Color[] 
