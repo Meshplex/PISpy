@@ -17,7 +17,7 @@ namespace PiSpyBackend.Test.UnitTests
                 process.StartInfo.FileName = "sudo";
                 // Hier wird der Befehl über sudo ausgeführt:
                 process.StartInfo.Arguments = "/home/admin/neo_pixel_project/venv/bin/python led_ring_rot.py";
-                
+                process.StartInfo.WorkingDirectory = "/home/admin/neo_pixel_project/";
                 // Damit wir Ausgaben einlesen können
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
