@@ -1,14 +1,46 @@
+using System.Device.Gpio;
+using System.Diagnostics;
 using PiSpyBackend.Domain.Interfaces;
 
 namespace PiSpyBackend.Application
 {
-    public class MotionService : ISensorService
+    public class MotionService : ISensorService, IDisposable
     {
-        // TODO: Methode welche bwegung trackt und Alarm erstellt wenn bewegung erkannt wird
-        // Sobald der Alarm scharf ist soll der Bewegungssensor dauerthaft aktiv sein und Alarme melden
+        private const int SensorPin = 27;
+        private readonly GpioController _controller;
+        
+        public MotionService()
+        {
+            _controller = new GpioController(PinNumberingScheme.Logical);
+            _controller.OpenPin(SensorPin, PinMode.Input);
+        }
+
         public object Run()
         {
-            throw new NotImplementedException();
+            return CheckForMotion(TimeSpan.FromMilliseconds(250));
+        }
+
+        public bool CheckForMotion(TimeSpan duration)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            while (stopwatch.Elapsed < duration)
+            {
+                if (_controller.Read(SensorPin) == PinValue.High)
+                {
+                    return true; // Bewegung erkannt
+                }
+                Thread.Sleep(10);
+            }
+            return false; // Keine Bewegung erkannt
+        }
+
+        public void Dispose()
+        {
+            if (_controller.IsPinOpen(SensorPin))
+            {
+                _controller.ClosePin(SensorPin);
+            }
+            _controller.Dispose();
         }
     }
 }
