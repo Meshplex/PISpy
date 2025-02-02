@@ -4,7 +4,7 @@ using System.Drawing;
 using Iot.Device.Ws28xx; // Namespace aus dem Iot.Device.Bindings-Paket
 using Xunit;
 
-namespace NeoPixelLedRingTest
+namespace PiSpyBackend.Test.UnitTests
 {
     public class NeoPixelLedRingTests
     {
