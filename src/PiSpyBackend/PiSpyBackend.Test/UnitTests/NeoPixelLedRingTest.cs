@@ -26,7 +26,7 @@ namespace PiSpyBackend.Test.UnitTests
             var controller = new WS281x(settings);
 
         // Beispiel: Erste LED auf Rot setzen
-            controller.SetLEDColor(0, 3, Color.Red);
+            controller.SetLEDColor(0, 23, Color.Red);
             controller.Render(); // Änderungen anzeigen
         }
     }
