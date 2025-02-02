@@ -17,7 +17,7 @@ namespace PiSpyBackend.Application
 
         public object Run()
         {
-            return CheckForMotion(TimeSpan.FromMilliseconds(250));
+            return CheckForMotion(TimeSpan.FromMilliseconds(1500));
         }
 
         public bool CheckForMotion(TimeSpan duration)
