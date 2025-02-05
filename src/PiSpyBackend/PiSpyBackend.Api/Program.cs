@@ -30,6 +30,17 @@ builder.Services.AddAuthorization();
 var context = new AppDbContext();
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactLocalhost", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173", "http://localhost:5272")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -69,6 +80,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactLocalhost");
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();

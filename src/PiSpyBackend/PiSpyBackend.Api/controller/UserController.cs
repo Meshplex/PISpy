@@ -1,8 +1,10 @@
+using System.Security.Principal;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PiSpyBackend.Application;
 using PiSpyBackend.Domain;
+using PiSpyBackend.Domain.Models;
 
 namespace PiSpyBackend.Api.Controllers
 {
@@ -36,19 +38,19 @@ namespace PiSpyBackend.Api.Controllers
         }
         
         [HttpPost("login")]
-        public Result<string> LoginUser(string username, string password)
+        public IActionResult LoginUser([FromBody] Domain.Models.LoginRequest loginRequest)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(loginRequest.Username) || string.IsNullOrEmpty(loginRequest.Password))
             {
-                return Result.Fail("Empty input");
+                return BadRequest(new { Message = "Empty input" });
             }
 
-            var result = _userService.LoginUser(username, password);
+            var result = _userService.LoginUser(loginRequest.Username, loginRequest.Password);
             if (result.IsFailed)
             {
-                return Result.Fail("Es wurde kein Benutzer mit den angegebenen Daten gefunden");
+                return Unauthorized(new { Message = "Es wurde kein Benutzer mit den angegebenen Daten gefunden"});
             }
-            return Result.Ok(_jwtTokenService.GenerateToken(result.Value.Username!, result.Value.Id));
+            return Ok(new { Token = _jwtTokenService.GenerateToken(result.Value.Username!, result.Value.Id)});
         }
         
         [HttpPost("update")]
