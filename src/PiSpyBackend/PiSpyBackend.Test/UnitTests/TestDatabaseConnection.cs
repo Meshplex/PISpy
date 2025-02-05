@@ -12,6 +12,13 @@ namespace PiSpyBackend.Test.UnitTests
             var appCon = new AppDbContext();
             if (appCon.Database.CanConnect())
             {
+                User user = new()
+                {
+                    Username = "tercan",
+                    Password = BCrypt.Net.BCrypt.HashPassword("123", workFactor: 12)
+                };
+                appCon.Users.Add(user);
+                appCon.SaveChanges();
                 appCon.Users.Should().NotBeNullOrEmpty();
                 appCon.Events.Should().NotBeNullOrEmpty();
                 true.Should().BeTrue();
