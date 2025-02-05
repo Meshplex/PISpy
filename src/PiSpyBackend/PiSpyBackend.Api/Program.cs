@@ -35,9 +35,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactLocalhost", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .SetIsOriginAllowed(origin => true) 
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 builder.Services.AddSwaggerGen(options =>
