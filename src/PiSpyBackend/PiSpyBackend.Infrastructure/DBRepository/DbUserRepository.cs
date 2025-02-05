@@ -12,6 +12,16 @@ namespace PiSpyBackend.Infrastructure
             this.context = context;
         }
 
+        public Result<User> GetUserByUsername(string username)
+        {
+            var userToFind = context.Users.FirstOrDefault(userToFind => userToFind.Username == username);
+            if (userToFind == null)
+            {
+                return Result.Fail("Es wurde kein Nutzer mit gegebenen Username Gefunden");
+            }
+            return Result.Ok(userToFind);
+        }
+
         public Result<User> FindUserFromId(int id){
             var userToFind = context.Users.FirstOrDefault(userToFind => userToFind.Id == id);
             if (userToFind == null)
@@ -51,11 +61,8 @@ namespace PiSpyBackend.Infrastructure
             {
                 return Result.Fail("Es wurde kein nutzer mit der gegebenen ID gefunden");
             }
-
-            // Remove the Old version of the Useraccount from Database an add the Updated one 
-            context.Users.Remove(userToUpdate);
             userToUpdate.Password = password;
-            context.Users.Add(userToUpdate);
+            context.Users.Update(userToUpdate);
             context.SaveChanges();
             return Result.Ok();
         }

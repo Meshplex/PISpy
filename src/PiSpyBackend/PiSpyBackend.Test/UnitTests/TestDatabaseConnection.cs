@@ -12,8 +12,11 @@ namespace PiSpyBackend.Test.UnitTests
             var appCon = new AppDbContext();
             if (appCon.Database.CanConnect())
             {
+                appCon.Users.Should().NotBeNullOrEmpty();
+                appCon.Events.Should().NotBeNullOrEmpty();
                 true.Should().BeTrue();
             }
+            false.Should().BeFalse();
         }
     }
 }

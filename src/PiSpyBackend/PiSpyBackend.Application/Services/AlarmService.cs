@@ -1,12 +1,10 @@
-using FluentResults;
 using PiSpyBackend.Domain.Interfaces;
 using PiSpyBackend.Infrastructure;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace PiSpyBackend.Application
 {
-    class AlarmService 
+    public class AlarmService 
     {
         public bool AlarmState { get; private set; }
         private AppDbContext Context { get; set; }
@@ -14,55 +12,81 @@ namespace PiSpyBackend.Application
         private ButtonService ButtonService { get; set; }
         private RfidService RfidService { get; set; }
         private LedRingService LedRingService { get; set; }
+        private MapKeyToUserService KeyService { get; set; }
+        private EventService EventService { get; set; }
         private CancellationTokenSource cancellationTokenSource;
 
         public AlarmService(AppDbContext context)
-        {
+        {   
+            this.cancellationTokenSource = new CancellationTokenSource();
             this.Context = context;
+            this.EventService = new EventService(Context);
+            this.KeyService = new MapKeyToUserService(this.Context);
             this.RfidService = new RfidService();
+            this.MotionService = new MotionService();
+            this.ButtonService = new ButtonService();
             this.LedRingService = new LedRingService();
+            StartRfidService();
+            LedRingService.ActivateGreenLed();
         }
 
-        public void ActivateAlarm(string sensorName)
+        private void StartRfidService()
+        {
+            Task.Run(() =>
+            {
+                while (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    var result = (BigInteger)RfidService.Run();
+                    if (result == 0)
+                    {
+                        continue;
+                    }
+                    var findUserFromKey = KeyService.FindUserFromKey(result.ToString());
+                    if (findUserFromKey.IsFailed || String.IsNullOrEmpty(findUserFromKey.Value.Username))
+                    {
+                        continue;
+                    }
+                    if (AlarmState)
+                    {
+                        TurnOffAlarm(findUserFromKey.Value.Username, findUserFromKey.Value.Id);
+                    }
+                    else {
+                        TurnOnAlarm(findUserFromKey.Value.Username, findUserFromKey.Value.Id);
+                    }
+                }
+            });
+        }
+
+        private void ActivateAlarm(string sensorName)
         {
             if (AlarmState == true)
             {
-                var eventService = new EventService(Context);
                 var eventDescription = $"Alarm ausgelöst der Sensor: {sensorName} hat Alarm gegeben!";
-                eventService.AddEvent(description: eventDescription, keyId: null, userId: 0);
+                EventService.AddEvent(description: eventDescription, keyId: null, userId: 0);
             }
         }
 
-        public Result TurnOnAlarm()
+        public void TurnOnAlarm(string username, int userId)
         {
-            if (AlarmState == true)
-            {
-                return Result.Fail("Der Alarm ist bereits Scharfgestellt");
-            }
             AlarmState = true;
+            var eventDescription = $"Alarm wurde eingeschalten von: {username}";
+            EventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
             StartSensors();
-            return Result.Ok();
+            LedRingService.ActivateRedLed();
         }
 
-        public Result TurnOffAlarm()
+        public void TurnOffAlarm(string username, int userId)
         {
-            if (AlarmState == false)
-            {
-                return Result.Fail("Der Alarm ist bereits Aus");
-            }
             AlarmState = false;
+            var eventDescription = $"Alarm wurde ausgeschalten von: {username}";
+            EventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
             StopSensors();
-            return Result.Ok();
+            LedRingService.ActivateGreenLed();
         }
 
         private void StartSensors()
         {
-            cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
-
-            MotionService = new MotionService();
-            ButtonService = new ButtonService();
-
             Task.Run(() => RunSensor(MotionService, token), token);
             Task.Run(() => RunSensor(ButtonService, token), token);
         }
@@ -78,33 +102,28 @@ namespace PiSpyBackend.Application
             {
                 var result = sensorService.Run();
                 ProcessSensorResult(sensorService, result);
-                await Task.Delay(1000); // Adjust the delay as needed
+                await Task.Delay(250, cancellationToken: token);
             }
         }
 
         private void ProcessSensorResult(ISensorService sensorService, object result)
         {
-            // Verarbeiten Sie hier die Rückgabewerte der Sensoren
             if (sensorService is MotionService)
             {
-                // Verarbeiten Sie die Rückgabewerte des Bewegungssensors
-                var distance = (int)result;
-                if (distance < 100) // Beispielbedingung
+                var motionDetected = (bool)result;
+                if (motionDetected)
                 {
-                    ActivateAlarm("MotionSensor");
+                    ActivateAlarm("Bewegungsmelder");
                 }
             }
-            else if (sensorService is RfidService)
+            else if (sensorService is ButtonService)
             {
-                // Verarbeiten Sie die Rückgabewerte des RFID-Sensors
-                var rfid = (string)result;
-                // Beispiel: Überprüfen Sie die RFID-ID
-                if (rfid == "123456")
+                var buttonPressed = (bool)result;
+                if (buttonPressed)
                 {
-                    ActivateAlarm("RfidSensor");
+                    ActivateAlarm("Fensterbruchsensor");
                 }
             }
-            // Fügen Sie hier weitere Sensoren hinzu
         }
     }
 }

@@ -4,13 +4,18 @@ using PiSpyBackend.Infrastructure;
 
 namespace PiSpyBackend.Application
 {
-    class EventService
+    public class EventService
     {
         private IDbEventRepository repo { get; set; }
 
         public EventService(AppDbContext context)
         {
             this.repo = new DbEventRepository(context);
+        }
+
+        public Result<Event[]> GetEvents()
+        {
+            return Result.Ok(repo.GetAllEvents().Value);
         }
 
         public Result AddEvent(string? keyId, int userId, string description)

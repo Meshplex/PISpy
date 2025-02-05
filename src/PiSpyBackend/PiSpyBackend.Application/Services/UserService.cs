@@ -37,16 +37,17 @@ namespace PiSpyBackend.Application {
 
         public Result ChangeUserPassword(int userId, string newPassword)
         {
-            //Validate the given userId & password
             if (userId == 0 || userId < 0 || string.IsNullOrEmpty(newPassword))
             {
                 return Result.Fail("Failed to change password of user because the given id was wrong");
             }
-
-            // Update user in Database
-            var result = Repo.UpdateData(userId, BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 12));
+            var userToUpdate = Repo.FindUserFromId(userId);
+            if (userToUpdate.IsFailed || userToUpdate.Value == null)
+            {
+                return Result.Fail("Failed to change password the user does not exsist");
+            }
             
-            //Check for failed Result
+            var result = Repo.UpdateData(userId, BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 12));
             if (result.IsFailed)
             {
                 return Result.Fail("Failed to change password of user");
@@ -71,6 +72,26 @@ namespace PiSpyBackend.Application {
                 return Result.Fail("Failed to delete user");
             }
             return Result.Ok();
+        }
+    
+        public Result<User> LoginUser(string username, string password)
+        {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                return Result.Fail("Failed to login user because the given username or password was empty");
+            }
+
+            var user = Repo.GetUserByUsername(username);
+            if (user.IsFailed)
+            {
+                return Result.Fail("Failed to login user because the given username was not found");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.Value.Password))
+            {
+                return Result.Fail("Failed to login user because the given password was wrong");
+            }
+            return Result.Ok(user.Value);
         }
     }
 }

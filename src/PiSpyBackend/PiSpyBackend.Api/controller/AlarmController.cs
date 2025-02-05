@@ -1,14 +1,29 @@
 using Microsoft.AspNetCore.Mvc;
+using PiSpyBackend.Application;
 
 namespace PiSpyBackend.Api.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
     public class AlarmController : ControllerBase
     {
-        [HttpPost("activate")]
-        public void ActivateAlarm(){}
+        private readonly AlarmService _alarmService;
 
-        [HttpPost("deactivate")]
-        public void DeactivateAlarm(){}
+        public AlarmController(AlarmService alarmService)
+        {
+            _alarmService = alarmService;
+        }
+
+        [HttpPut("activate")]
+        public void ActivateAlarm(string username, int userId)
+        {
+            _alarmService.TurnOnAlarm(username, userId);
+        }
+
+        [HttpPut("deactivate")]
+        public void DeactivateAlarm(string username, int userId)
+        {
+            _alarmService.TurnOffAlarm(username, userId);
+        }
     }
 }

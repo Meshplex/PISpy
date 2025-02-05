@@ -1,4 +1,3 @@
-using System;
 using System.Device.Gpio;
 using System.Device.Spi;
 using System.Numerics;
