@@ -1,3 +1,4 @@
+using System.Device.Gpio;
 using FluentAssertions;
 using PiSpyBackend.Application;
 using Xunit.Abstractions;
@@ -17,7 +18,7 @@ namespace PiSpyBackend.Test.UnitTests
         public void TestMotion()
         {
             // Arrange
-            var service = new MotionService();
+            var service = new MotionService(new GpioController(PinNumberingScheme.Logical));
             
             // Act
             var result = (bool)service.Run();
