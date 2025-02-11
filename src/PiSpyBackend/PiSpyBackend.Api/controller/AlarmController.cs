@@ -15,15 +15,33 @@ namespace PiSpyBackend.Api.Controllers
         }
 
         [HttpPut("activate")]
-        public void ActivateAlarm(string username, int userId)
+        public void ActivateAlarm()
         {
-            _alarmService.TurnOnAlarm(username, userId);
+            var username = HttpContext.User.FindFirst("sub")?.Value;
+            var userId = HttpContext.User.FindFirst("nameid")?.Value;
+            if (username == null || userId == null)
+            {
+                return;
+            }
+            if (int.TryParse(userId, out int id))
+            {
+                _alarmService.TurnOnAlarm(username, id);
+            }
         }
 
         [HttpPut("deactivate")]
-        public void DeactivateAlarm(string username, int userId)
+        public void DeactivateAlarm()
         {
-            _alarmService.TurnOffAlarm(username, userId);
+            var username = HttpContext.User.FindFirst("sub")?.Value;
+            var userId = HttpContext.User.FindFirst("nameid")?.Value;
+            if (username == null || userId == null)
+            {
+                return;
+            }
+            if (int.TryParse(userId, out int id))
+            {
+                _alarmService.TurnOffAlarm(username, id);
+            }
         }
     }
 }

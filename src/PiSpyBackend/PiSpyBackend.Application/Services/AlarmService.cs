@@ -1,6 +1,9 @@
 using PiSpyBackend.Domain.Interfaces;
 using PiSpyBackend.Infrastructure;
 using System.Numerics;
+using NSubstitute;
+using System.Device.Gpio;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PiSpyBackend.Application
 {
@@ -13,21 +16,27 @@ namespace PiSpyBackend.Application
         private RfidService RfidService { get; set; }
         private LedRingService LedRingService { get; set; }
         private MapKeyToUserService KeyService { get; set; }
-        private EventService EventService { get; set; }
+        private IServiceScopeFactory ScopeFactory { get; set; }
         private CancellationTokenSource cancellationTokenSource;
 
-        public AlarmService(AppDbContext context)
+        public AlarmService(IServiceScopeFactory scopeFactory)
         {   
-            this.cancellationTokenSource = new CancellationTokenSource();
-            this.Context = context;
-            this.EventService = new EventService(Context);
-            this.KeyService = new MapKeyToUserService(this.Context);
-            this.RfidService = new RfidService();
-            this.MotionService = new MotionService();
-            this.ButtonService = new ButtonService();
-            this.LedRingService = new LedRingService();
-            StartRfidService();
-            LedRingService.ActivateGreenLed();
+            try 
+            {
+                var mockGpioController =  new GpioController(PinNumberingScheme.Logical);
+                this.cancellationTokenSource = new CancellationTokenSource();
+                this.ScopeFactory = scopeFactory;
+                this.RfidService = new RfidService();
+                this.MotionService = new MotionService(mockGpioController);
+                this.ButtonService = new ButtonService(mockGpioController);
+                this.LedRingService = new LedRingService();
+                StartRfidService();
+                LedRingService.ActivateGreenLed();
+            }
+            catch
+            {
+                Console.WriteLine("Error while initializing AlarmService");
+            }
         }
 
         private void StartRfidService()
@@ -61,25 +70,31 @@ namespace PiSpyBackend.Application
         {
             if (AlarmState == true)
             {
+                using var scope = ScopeFactory.CreateScope();
+                var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
                 var eventDescription = $"Alarm ausgelöst der Sensor: {sensorName} hat Alarm gegeben!";
-                EventService.AddEvent(description: eventDescription, keyId: null, userId: 0);
+                eventService.AddEvent(description: eventDescription, keyId: null, userId: 0);
             }
         }
 
         public void TurnOnAlarm(string username, int userId)
         {
+            using var scope = ScopeFactory.CreateScope();
+            var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
             AlarmState = true;
             var eventDescription = $"Alarm wurde eingeschalten von: {username}";
-            EventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
+            eventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
             StartSensors();
             LedRingService.ActivateRedLed();
         }
 
         public void TurnOffAlarm(string username, int userId)
         {
+            using var scope = ScopeFactory.CreateScope();
+            var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
             AlarmState = false;
             var eventDescription = $"Alarm wurde ausgeschalten von: {username}";
-            EventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
+            eventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
             StopSensors();
             LedRingService.ActivateGreenLed();
         }

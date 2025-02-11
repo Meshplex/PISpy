@@ -12,6 +12,16 @@ namespace PiSpyBackend.Application {
             this.Repo = new DbUserRepository(context);
         }
 
+        public Result<User[]> GetAllUsers()
+        {
+            var users = Repo.GetAllUsers();
+            if (users.IsFailed)
+            {
+                return Result.Fail("Failed to get all users");
+            }
+            return Result.Ok(users.Value);
+        }
+
         public Result CreateUser(User blankUser)
         {
             //Verify the input is valid

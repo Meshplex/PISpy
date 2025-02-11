@@ -10,11 +10,6 @@ public class AlarmHub : Hub
     {
         _alarmService = alarmService;
     }
-    
-    public async Task SendEvent(Event eventObj)
-    {
-        await Clients.All.SendAsync("ReceiveEvent", eventObj);
-    }
 
     public async Task TogglePropertyStatus(bool newStatus, string username, int userId)
     {

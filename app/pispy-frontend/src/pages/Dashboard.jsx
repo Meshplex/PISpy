@@ -1,156 +1,142 @@
-import { useEffect, useState } from 'react';
+// src/Dashboard.js
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { Grid, Paper, Typography, Button, Alert } from '@mui/material';
+
+import EventList from '../components/EventList';
+import AlarmPanel from '../components/AlarmPanel';
+import UserList from '../components/UserList';
+import ChangePasswordDialog from '../components/modals/ChangePasswordDialog';
+import DeleteUserDialog from '../components/modals/DeleteUserDialog';
+import KeyDialog from '../components/modals/UserKeysDialog';
 
 import {
-  Grid,
-  Paper,
-  Typography,
-  Button,
-  Switch,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-} from '@mui/material';
+  fetchEvents,
+  fetchUsers,
+  changeUserPassword,
+  deleteUser,
+  addUserKey,
+  setAlarmStatus,
+} from '../api/apiService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
-  // SignalR connection
-  const [connection, setConnection] = useState(null);
-
-  // --------------------
-  // 1) Daten-Liste (SignalR)
-  // --------------------
   const [myList, setMyList] = useState([]);
-
-  // --------------------
-  // 2) Alarm-Status (SignalR) + API-Update
-  // --------------------
   const [alarmArmed, setAlarmArmed] = useState(false);
-
-  // --------------------
-  // 3) User-Liste + Modals
-  // --------------------
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
-
-  // A) Passwort ändern - Modal
   const [openPasswordModal, setOpenPasswordModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openStringModal, setOpenStringModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [newPassword, setNewPassword] = useState('');
+  const [newString, setNewString] = useState('');
 
-  // B) Benutzer löschen - Bestätigungs-Dialog
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const isMountedRef = useRef(true);
 
-  // --------------------
-  // Effekt: SignalR-Connection aufbauen
-  // --------------------
+  const updateMyList = (newEvents) => {
+    setMyList(newEvents);
+    localStorage.setItem('myList', JSON.stringify(newEvents));
+  };
+
+  // Lade Events aus dem lokalen Speicher
   useEffect(() => {
-    // SignalR-Verbindung initialisieren
-    const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5272/alarmHub') // <--- Anpassen!
-      .withAutomaticReconnect()
-      .build();
-
-    setConnection(newConnection);
+    const storedEvents = localStorage.getItem('myList');
+    if (storedEvents) {
+      setMyList(JSON.parse(storedEvents));
+    }
   }, []);
 
+  // SignalR-Verbindung initialisieren (bleibt hier)
+  const connectionRef = useRef(
+    new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:5272/alarmHub')
+      .withAutomaticReconnect()
+      .build()
+  );
+  const connection = connectionRef.current;
+
   useEffect(() => {
-    if (connection) {
-      connection
-        .start()
-        .then(() => {
+    isMountedRef.current = true;
+
+    const startConnection = async () => {
+      if (connection.state === signalR.HubConnectionState.Disconnected) {
+        try {
+          await connection.start();
+          if (!isMountedRef.current) return;
           console.log('SignalR connected.');
-
-          // Beispiel: Empfange eine Liste über ein Event 'ReceiveList'
-          connection.on('ReceiveList', (data) => {
-            setMyList(data);
+          connection.on('NewEvents', (data) => {
+            updateMyList(data);
           });
-
-          // Beispiel: Empfange Alarm-Status über 'ReceiveAlarmStatus'
-          connection.on('ReceiveAlarmStatus', (status) => {
+          connection.on('ReceivePropertyStatus', (status) => {
             setAlarmArmed(status);
           });
+        } catch (err) {
+          if (err.message && err.message.includes('stopped during negotiation')) {
+            console.warn('Connection start aborted during negotiation:', err);
+          } else {
+            console.error('Connection failed:', err);
+          }
+        }
+      }
+    };
 
-          // Falls du die User-Liste ebenso über SignalR aktualisieren willst:
-          connection.on('ReceiveUserList', (userList) => {
-            setUsers(userList);
-          });
-        })
-        .catch((error) => console.error('Connection failed: ', error));
-    }
+    startConnection();
+
+    return () => {
+      isMountedRef.current = false;
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.stop().catch((err) => {
+          if (err.message && !err.message.includes('stopped during negotiation')) {
+            console.error('Error while stopping connection: ', err);
+          }
+        });
+      }
+    };
   }, [connection]);
 
-  // --------------------
-  // (optional) Userliste initial per API laden
-  // --------------------
+  // Initiale Daten laden
   useEffect(() => {
-    fetchUsers();
+    (async () => {
+      try {
+        const events = await fetchEvents();
+        updateMyList(events);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      }
+    })();
+
+    (async () => {
+      try {
+        const usersData = await fetchUsers();
+        setUsers(usersData);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      }
+    })();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch('http://localhost:5272/api/User/all', {
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
-      });
-      if (!res.ok) throw new Error('Fehler beim Laden der User-Liste');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    }
-  };
-
-  // --------------------
-  // Logout
-  // --------------------
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/'); // Zurück zur Login-Seite (anpassen nach Bedarf)
+    navigate('/');
   };
 
-  // --------------------
-  // Alarmstatus per API ändern
-  // --------------------
   const handleAlarmToggle = async (event) => {
     const newStatus = event.target.checked;
     setAlarmArmed(newStatus);
-
     try {
-      // API-Call zum Setzen des neuen Status
-      const res = await fetch('http://localhost:5272/api/Alarm/SetStatus', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + localStorage.getItem('token'),
-        },
-        body: JSON.stringify({ isArmed: newStatus }),
-      });
-      if (!res.ok) {
-        throw new Error('Konnte Alarmstatus nicht ändern.');
-      }
-      // optional: Erfolgsmeldung / State-Update
+      await setAlarmStatus(newStatus);
     } catch (err) {
       console.error(err);
       setError(err.message);
     }
   };
 
-  // --------------------
-  // Passwort ändern - Dialog öffnen & Funktion
-  // --------------------
+  // Passwort ändern
   const handleOpenChangePassword = (userId) => {
     setSelectedUserId(userId);
     setNewPassword('');
@@ -163,21 +149,7 @@ const Dashboard = () => {
 
   const handleChangePassword = async () => {
     try {
-      const res = await fetch('http://localhost:5272/api/User/changePassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + localStorage.getItem('token'),
-        },
-        body: JSON.stringify({
-          userId: selectedUserId,
-          newPassword,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error('Passwort konnte nicht geändert werden.');
-      }
-      // Modal schließen und ggf. Erfolgsmeldung anzeigen
+      await changeUserPassword(selectedUserId, newPassword);
       setOpenPasswordModal(false);
     } catch (err) {
       console.error(err);
@@ -185,9 +157,7 @@ const Dashboard = () => {
     }
   };
 
-  // --------------------
-  // Benutzer löschen - Dialog öffnen & Funktion
-  // --------------------
+  // Benutzer löschen
   const handleOpenDeleteModal = (userId) => {
     setSelectedUserId(userId);
     setOpenDeleteModal(true);
@@ -199,19 +169,7 @@ const Dashboard = () => {
 
   const handleDeleteUser = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5272/api/User/delete/${selectedUserId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: 'Bearer ' + localStorage.getItem('token'),
-          },
-        }
-      );
-      if (!res.ok) {
-        throw new Error('Benutzer konnte nicht gelöscht werden.');
-      }
-      // Modal schließen und lokale Userliste aktualisieren
+      await deleteUser(selectedUserId);
       setOpenDeleteModal(false);
       setUsers(users.filter((u) => u.id !== selectedUserId));
     } catch (err) {
@@ -220,9 +178,30 @@ const Dashboard = () => {
     }
   };
 
+  // String aktualisieren
+  const handleOpenStringModal = (userId) => {
+    setSelectedUserId(userId);
+    setNewString('');
+    setOpenStringModal(true);
+  };
+
+  const handleCloseStringModal = () => {
+    setOpenStringModal(false);
+  };
+
+  const handleSubmitStringChange = async () => {
+    try {
+      await addUserKey(selectedUserId, newString);
+      setOpenStringModal(false);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
+  };
+
   return (
     <Grid container spacing={2} sx={{ p: 2 }}>
-      {/* Kopfzeile mit Logout-Button */}
+      {/* Logout-Button */}
       <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="outlined"
@@ -234,117 +213,55 @@ const Dashboard = () => {
         </Button>
       </Grid>
 
-      {/* Erste Zeile: Liste aus SignalR (myList) */}
+      {/* Events */}
       <Grid item xs={12}>
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">SignalR-Daten (nicht sortierbar)</Typography>
-          {myList.length === 0 && (
-            <Typography variant="body2">
-              Keine Daten oder Verbindung noch nicht aktiv.
-            </Typography>
-          )}
-          <List>
-            {myList.map((item, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={item} />
-              </ListItem>
-            ))}
-          </List>
+          <Typography variant="h6">Events</Typography>
+          <EventList events={myList} />
         </Paper>
       </Grid>
 
-      {/* Zweite Zeile: Links der Switch (Alarmstatus), rechts die Userliste */}
+      {/* Alarmsteuerung */}
       <Grid item xs={12} md={6}>
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Alarmanlage</Typography>
-          <Typography variant="body1">
-            Status: {alarmArmed ? 'Scharf' : 'Nicht scharf'}
-          </Typography>
-          <Switch
-            checked={alarmArmed}
-            onChange={handleAlarmToggle}
-            color="primary"
-          />
-        </Paper>
+        <AlarmPanel alarmArmed={alarmArmed} onToggle={handleAlarmToggle} />
       </Grid>
 
+      {/* Benutzerkonten */}
       <Grid item xs={12} md={6}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6">Benutzerkonten</Typography>
-
           {error && <Alert severity="error">{error}</Alert>}
-          {users.length === 0 && (
-            <Typography variant="body2">Keine Benutzer gefunden.</Typography>
-          )}
-          <List>
-            {users.map((user) => (
-              <ListItem
-                key={user.id}
-                secondaryAction={
-                  <>
-                    <IconButton
-                      edge="end"
-                      aria-label="edit"
-                      onClick={() => handleOpenChangePassword(user.id)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => handleOpenDeleteModal(user.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                }
-              >
-                <ListItemText
-                  primary={user.username}
-                  secondary={`ID: ${user.id}`}
-                />
-              </ListItem>
-            ))}
-          </List>
+          <UserList
+            users={users}
+            onChangePassword={handleOpenChangePassword}
+            onDeleteUser={handleOpenDeleteModal}
+            onUpdateString={handleOpenStringModal}
+          />
         </Paper>
       </Grid>
 
-      {/* Dialog: Passwort ändern */}
-      <Dialog open={openPasswordModal} onClose={handleCloseChangePassword}>
-        <DialogTitle>Passwort ändern</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Neues Passwort"
-            type="password"
-            fullWidth
-            sx={{ mt: 2 }}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseChangePassword}>Abbrechen</Button>
-          <Button variant="contained" onClick={handleChangePassword}>
-            Speichern
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Modals */}
+      <ChangePasswordDialog
+        open={openPasswordModal}
+        onClose={handleCloseChangePassword}
+        newPassword={newPassword}
+        setNewPassword={setNewPassword}
+        onSave={handleChangePassword}
+      />
 
-      {/* Dialog: Benutzer löschen */}
-      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
-        <DialogTitle>Konto löschen</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Bist du sicher, dass du diesen Benutzer löschen möchtest?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteModal}>Abbrechen</Button>
-          <Button variant="contained" color="error" onClick={handleDeleteUser}>
-            Löschen
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteUserDialog
+        open={openDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onDelete={handleDeleteUser}
+      />
+
+      <KeyDialog
+        open={openStringModal}
+        onClose={handleCloseStringModal}
+        newString={newString}
+        setNewString={setNewString}
+        onSave={handleSubmitStringChange}
+      />
     </Grid>
   );
 };

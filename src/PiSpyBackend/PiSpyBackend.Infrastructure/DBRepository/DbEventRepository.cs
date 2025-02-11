@@ -19,6 +19,7 @@ namespace PiSpyBackend.Infrastructure
         public Result RegisterEvent(Event newEvent)
         {
             context.Events.Add(newEvent);
+            context.SaveChanges();
             return Result.Ok();
         }
     }

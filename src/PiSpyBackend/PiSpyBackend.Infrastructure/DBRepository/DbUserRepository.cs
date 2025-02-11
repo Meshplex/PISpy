@@ -12,6 +12,11 @@ namespace PiSpyBackend.Infrastructure
             this.context = context;
         }
 
+        public Result<User[]> GetAllUsers()
+        {
+            return Result.Ok(context.Users.ToArray());
+        }
+
         public Result<User> GetUserByUsername(string username)
         {
             var userToFind = context.Users.FirstOrDefault(userToFind => userToFind.Username == username);

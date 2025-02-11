@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using FluentResults;
 using PiSpyBackend.Domain;
 
@@ -22,12 +23,12 @@ namespace PiSpyBackend.Infrastructure
             return Result.Ok<Key>(keyToFind);
         }
 
-        public Result AddKey(string keyId, int userId, string keyValue)
+        public Result AddKey(string keyId, int userId, string? keyValue)
         {
             var newKey = new Key{
                 KeyId = keyId,
                 UserId = userId,
-                KeyValue = keyValue
+                KeyValue = keyValue ?? ""
             };
             Console.WriteLine("context.keys: ");
             Console.Write(context.keys);
@@ -44,6 +45,16 @@ namespace PiSpyBackend.Infrastructure
             }
             context.keys.Remove(keyToDelete);
             return Result.Ok();
+        }
+
+        public Result<Key[]> GetKeysFromUser(int userId)
+        {
+            var keys = context.keys.Where(k => k.UserId == userId);
+            if (keys is null || keys.Count() == 0)
+            {
+                return Result.Fail("No keys found for the given user");
+            }
+            return Result.Ok(keys.ToArray());
         }
     }
 }

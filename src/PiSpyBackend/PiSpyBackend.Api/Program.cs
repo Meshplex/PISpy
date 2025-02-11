@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using PiSpyBackend.Api.Services;
 using PiSpyBackend.Application;
 using PiSpyBackend.Infrastructure;
 
@@ -27,15 +28,13 @@ builder.Services.AddAuthentication("Bearer")
 
 builder.Services.AddAuthorization();
 
-var context = new AppDbContext();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactLocalhost", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5555", "https://localhost:5173", "http://localhost:5272")
+            .WithOrigins("http://localhost:5555", "https://localhost:5173","http://localhost:5173", "http://localhost:5272")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -66,10 +65,14 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-builder.Services.AddSingleton<AlarmService>(sp => new AlarmService(context));
-builder.Services.AddSingleton<EventService>(sp => new EventService(context));
-builder.Services.AddSingleton<UserService>(sp => new UserService(context));
+builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<MapKeyToUserService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<MapKeyToUserService>();
+builder.Services.AddSingleton<AlarmService>();
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<EventNotificationService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

@@ -5,7 +5,7 @@ using PiSpyBackend.Infrastructure;
 
 namespace PiSpyBackend.Application
 {
-    class MapKeyToUserService
+    public class MapKeyToUserService
     {
         private IDbKeyRepository keyRepo { get; set; }
         private IDbUserRepository userRepo { get; set; }
@@ -16,9 +16,8 @@ namespace PiSpyBackend.Application
             userRepo = new DbUserRepository(context);
         }
 
-        public Result AddKey(string keyId, int userId, string keyValue)
+        public Result AddKey(string keyId, int userId, string? keyValue)
         {
-            // Check if Key is already in DB
             var keyToFindResult = keyRepo.FindKey(keyId);
             if (keyToFindResult.IsSuccess)
             {
@@ -69,6 +68,21 @@ namespace PiSpyBackend.Application
                 return Result.Fail("Es konnte kein Nutzer mit der hinterlegten ID gefunden werden");
             }
             return Result.Ok(userToFindResult.Value);
+        }
+
+        public Result<Domain.Key[]> GetKeysFromUser(int userId)
+        {
+            var userToFindResult = userRepo.FindUserFromId(userId);
+            if (userToFindResult.IsFailed)
+            {
+                return Result.Fail("Es konnte kein Nutzer mit der hinterlegten ID gefunden werden");
+            }
+            var keys = keyRepo.GetKeysFromUser(userId);
+            if (keys.IsFailed)
+            {
+                return Result.Fail("Es konnten keine Schlüssel für den gegebenen Nutzer gefunden werden");
+            }
+            return Result.Ok(keys.Value);
         }
     }
 }

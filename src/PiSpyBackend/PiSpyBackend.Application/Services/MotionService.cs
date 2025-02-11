@@ -9,9 +9,9 @@ namespace PiSpyBackend.Application
         private const int SensorPin = 27;
         private readonly GpioController _controller;
         
-        public MotionService()
+        public MotionService(GpioController controller)
         {
-            _controller = new GpioController(PinNumberingScheme.Logical);
+            _controller = controller;
             _controller.OpenPin(SensorPin, PinMode.Input);
         }
 
