@@ -69,7 +69,7 @@ export const AddKeyToUser = async (newString) => {
 export const setAlarmStatus = async (isArmed) => {
   if (isArmed === true) {
     const res = await fetch(`${API_BASE}/Alarm/activate`, {
-      method: 'POST',
+      method: 'PUT',
       headers: getAuthHeaders(true),
     });
     if (!res.ok) {
@@ -77,7 +77,7 @@ export const setAlarmStatus = async (isArmed) => {
     }
   } else if (isArmed === false) {
     const res = await fetch(`${API_BASE}/Alarm/deactivate`, {
-      method: 'POST',
+      method: 'PUT',
       headers: getAuthHeaders(true),
     });
     if (!res.ok) {
