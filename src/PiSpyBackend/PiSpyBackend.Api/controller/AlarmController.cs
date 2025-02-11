@@ -27,12 +27,12 @@ namespace PiSpyBackend.Api.Controllers
             if (int.TryParse(userId, out int id))
             {
                 _alarmService.TurnOnAlarm(username, id);
+                return Result.Ok();
             }
             else 
             {
                 return Result.Fail("Failed to parse the user id");
             }
-            return Result.Ok();
 
         }
 
