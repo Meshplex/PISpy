@@ -1,3 +1,4 @@
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using PiSpyBackend.Application;
 
@@ -15,18 +16,24 @@ namespace PiSpyBackend.Api.Controllers
         }
 
         [HttpPut("activate")]
-        public void ActivateAlarm()
+        public Result ActivateAlarm()
         {
             var username = HttpContext.User.FindFirst("sub")?.Value;
             var userId = HttpContext.User.FindFirst("nameid")?.Value;
             if (username == null || userId == null)
             {
-                return;
+                return Result.Fail("Failed to get the user id from the token");
             }
             if (int.TryParse(userId, out int id))
             {
                 _alarmService.TurnOnAlarm(username, id);
             }
+            else 
+            {
+                return Result.Fail("Failed to parse the user id");
+            }
+            return Result.Ok();
+
         }
 
         [HttpPut("deactivate")]
