@@ -18,6 +18,7 @@ builder.Services.AddScoped<MapKeyToUserService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MapKeyToUserService>();
 builder.Services.AddSingleton<AlarmService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<AlarmService>());
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<EventNotificationService>();
 builder.Services.AddAuthentication("Bearer")
