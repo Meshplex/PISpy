@@ -10,7 +10,6 @@ namespace PiSpyBackend.Application
     public class AlarmService 
     {
         public bool AlarmState { get; private set; }
-        private AppDbContext Context { get; set; }
         private MotionService MotionService { get; set; }
         private ButtonService ButtonService { get; set; }
         private RfidService RfidService { get; set; }
@@ -20,23 +19,17 @@ namespace PiSpyBackend.Application
         private CancellationTokenSource cancellationTokenSource;
 
         public AlarmService(IServiceScopeFactory scopeFactory)
-        {   
-            try 
-            {
-                var mockGpioController =  new GpioController(PinNumberingScheme.Logical);
-                this.cancellationTokenSource = new CancellationTokenSource();
-                this.ScopeFactory = scopeFactory;
-                this.RfidService = new RfidService();
-                this.MotionService = new MotionService(mockGpioController);
-                this.ButtonService = new ButtonService(mockGpioController);
-                this.LedRingService = new LedRingService();
-                StartRfidService();
-                LedRingService.ActivateGreenLed();
-            }
-            catch
-            {
-                Console.WriteLine("Error while initializing AlarmService");
-            }
+        {
+
+            var mockGpioController = new GpioController(PinNumberingScheme.Logical);
+            this.cancellationTokenSource = new CancellationTokenSource();
+            this.ScopeFactory = scopeFactory;
+            this.RfidService = new RfidService();
+            this.MotionService = new MotionService(mockGpioController);
+            this.ButtonService = new ButtonService(mockGpioController);
+            this.LedRingService = new LedRingService();
+            StartRfidService();
+            LedRingService.ActivateGreenLed();
         }
 
         private void StartRfidService()
