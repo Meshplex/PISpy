@@ -40,7 +40,7 @@ namespace PiSpyBackend.Application
             KeyService = new MapKeyToUserService(scope.ServiceProvider.GetRequiredService<AppDbContext>());
 
             // Beim Start wird die grüne LED aktiviert.
-            LedRingService.ActivateGreenLed();
+            LedRingService.ActivateRedLed();
         }
 
         /// <summary>
