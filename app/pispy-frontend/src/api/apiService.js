@@ -72,6 +72,7 @@ export const setAlarmStatus = async (isArmed) => {
       method: 'PUT',
       headers: getAuthHeaders(true),
     });
+    console.log(res);
     if (!res.ok) {
       throw new Error('Konnte Alarmstatus nicht ändern.');
     }
@@ -80,6 +81,7 @@ export const setAlarmStatus = async (isArmed) => {
       method: 'PUT',
       headers: getAuthHeaders(true),
     });
+    console.log(res);
     if (!res.ok) {
       throw new Error('Konnte Alarmstatus nicht ändern.');
     }
