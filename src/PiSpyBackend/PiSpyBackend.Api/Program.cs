@@ -12,6 +12,14 @@ builder.Services.AddSingleton(new JwtTokenService(
     jwtSettings["Audience"]!
 ));
 
+builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<MapKeyToUserService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<MapKeyToUserService>();
+builder.Services.AddSingleton<AlarmService>();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<EventNotificationService>();
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
@@ -65,14 +73,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-builder.Services.AddDbContext<AppDbContext>();
-builder.Services.AddScoped<EventService>();
-builder.Services.AddScoped<MapKeyToUserService>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<MapKeyToUserService>();
-builder.Services.AddSingleton<AlarmService>();
-builder.Services.AddSignalR();
-builder.Services.AddHostedService<EventNotificationService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();
