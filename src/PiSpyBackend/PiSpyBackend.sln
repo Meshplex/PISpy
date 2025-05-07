@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSpyBackend.Domain", "PiSp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSpyBackend.Infrastructure", "PiSpyBackend.Infrastructure\PiSpyBackend.Infrastructure.csproj", "{B20F00FF-178B-43EF-97D0-68E55C49A16F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSpyBackend.Test", "PiSpyBackend.Test\PiSpyBackend.Test.csproj", "{2477289F-5547-46F1-A26B-1AAFF73712E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{B20F00FF-178B-43EF-97D0-68E55C49A16F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B20F00FF-178B-43EF-97D0-68E55C49A16F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B20F00FF-178B-43EF-97D0-68E55C49A16F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2477289F-5547-46F1-A26B-1AAFF73712E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2477289F-5547-46F1-A26B-1AAFF73712E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2477289F-5547-46F1-A26B-1AAFF73712E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2477289F-5547-46F1-A26B-1AAFF73712E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
