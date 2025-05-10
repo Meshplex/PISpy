@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="FluentResults" Version="3.16.0" />
+    <PackageReference Include="Iot.Device.Bindings" Version="3.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.0" />
+    <PackageReference Include="NSubstitute" Version="5.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PiSpyBackend.Domain/PiSpyBackend.Domain.csproj" />
+    <ProjectReference Include="../PiSpyBackend.Infrastructure/PiSpyBackend.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
