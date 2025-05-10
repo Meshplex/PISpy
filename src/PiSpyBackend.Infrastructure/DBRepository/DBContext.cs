@@ -1,20 +1,32 @@
 using PiSpyBackend.Domain;
 using Microsoft.EntityFrameworkCore;
 using System;
+using Npgsql;
 
 namespace PiSpyBackend.Infrastructure
 {
     public class AppDbContext : DbContext
     {
-        private string connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? throw new Exception("DATABASE_URL is not set");
+        private readonly string _dbUsername = "pispyuser";
+        private readonly string _dbPassword = "jnoriwhvoi345345.35,3.4";
+        private readonly string _dbName = "pispydatabase";
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Key> keys { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            var connBuilder = new NpgsqlConnectionStringBuilder
+            {
+                Host = "localhost",
+                Port = 5432,
+                Username = _dbUsername,
+                Password = _dbPassword,
+                Database = _dbName,
+            };
+
             optionsBuilder.UseNpgsql(
-                connectionString,
+                connBuilder.ConnectionString,
                 options => options.EnableRetryOnFailure())
             .EnableDetailedErrors();
         }

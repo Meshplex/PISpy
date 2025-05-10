@@ -8,7 +8,6 @@ import {
   Alert,
   Box,
 } from '@mui/material';
-import { API_BASE } from '../config';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -19,8 +18,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log(API_BASE);
-      const response = await fetch(`/api/User/login`, {
+      const response = await fetch(`http://localhost:5272/api/User/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

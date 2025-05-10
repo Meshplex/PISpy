@@ -52,7 +52,7 @@ const Dashboard = () => {
   // SignalR-Verbindung initialisieren (bleibt hier)
   const connectionRef = useRef(
     new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5273/alarmHub')
+      .withUrl('http://localhost:5272/alarmHub')
       .withAutomaticReconnect()
       .build()
   );

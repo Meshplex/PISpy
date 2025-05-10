@@ -1,0 +1,30 @@
+|-- .gitignore
+|-- README.md
+|-- eslint.config.js
+|-- index.html
+|-- package-lock.json
+|-- package.json
+|-- public
+    |-- vite.svg
+|-- src
+    |-- App.css
+    |-- App.jsx
+    |-- ProtectedRoute.jsx
+    |-- api
+        |-- apiService.js
+    |-- components
+        |-- AlarmPanel.jsx
+        |-- EventList.jsx
+        |-- UserList.jsx
+        |-- modals
+            |-- AddKeyDialog.jsx
+            |-- ChangePasswordDialog.jsx
+            |-- DeleteUserDialog.jsx
+            |-- UserKeysDialog.jsx
+    |-- config.jsx
+    |-- index.css
+    |-- main.jsx
+    |-- pages
+        |-- Dashboard.jsx
+        |-- Login.jsx
+|-- vite.config.js
