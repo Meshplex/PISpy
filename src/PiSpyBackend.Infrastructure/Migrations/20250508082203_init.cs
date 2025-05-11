@@ -54,6 +54,12 @@ namespace PiSpyBackend.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Username", "Password" },
+                values: new object[] { "admin", BCrypt.Net.BCrypt.HashPassword("admin", workFactor: 12) }
+    );
         }
 
         /// <inheritdoc />
