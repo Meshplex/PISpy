@@ -22,6 +22,7 @@ namespace PiSpyBackend.Application.Services
         {
             try
             {
+                Console.WriteLine("Initialisiere SPI für LED-Ring...");
                 var settings = new SpiConnectionSettings(busId: 0, chipSelectLine: 1)
                 {
                     ClockFrequency = 2_400_000,  // 2.4 MHz Takt für WS2812B (SPI Mode0):contentReference[oaicite:5]{index=5}
@@ -32,6 +33,7 @@ namespace PiSpyBackend.Application.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Fehler bei der SPI-Initialisierung: {ex.Message}");
                 throw new InvalidOperationException("SPI-Initialisierung für LED-Ring fehlgeschlagen.", ex);
             }
 
