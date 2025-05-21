@@ -30,6 +30,7 @@ namespace PiSpyBackend.Application.Services
                     DataBitLength = 8
                 };
                 _spiDevice = SpiDevice.Create(settings);
+                Console.WriteLine("SPI für LED-Ring initialisiert." + _spiDevice);
             }
             catch (Exception ex)
             {
