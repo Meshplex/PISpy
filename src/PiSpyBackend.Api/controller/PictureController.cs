@@ -22,7 +22,12 @@ namespace PiSpyBackend.Api.Controllers
     [Authorize]
     public Result<IEnumerable<PictureDTO>> GetAllPictures()
     {
-      return _service.GetAllPictures();
+      var result = _service.GetAllPictures();
+      if (result.IsFailed)
+      {
+        return Result.Fail(result.Errors);
+      }
+      return result;
     }
 
     [HttpPost("addpicture")]
