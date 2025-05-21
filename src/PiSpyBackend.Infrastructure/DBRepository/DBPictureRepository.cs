@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using FluentResults;
 using PiSpyBackend.Domain.Models;
 using PiSpyBackend.Infrastructure.Interfaces;
@@ -39,7 +40,8 @@ namespace PiSpyBackend.Infrastructure.DBRepository
       var pictures = _context.Pictures.AsEnumerable();
       if (pictures == null || !pictures.Any())
       {
-        return Result.Fail("No pictures found");
+        var emptyPictureList = new List<PictureDTO>().AsEnumerable();
+        return Result.Ok(emptyPictureList);
       }
 
       return Result.Ok(pictures);
