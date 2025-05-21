@@ -47,6 +47,7 @@ namespace PiSpyBackend.Application.Services
         /// </summary>
         public void SetRed()
         {
+            Console.WriteLine("Setze alle LEDs auf Rot.");
             SetColor(Color.Red);
         }
 
@@ -55,6 +56,7 @@ namespace PiSpyBackend.Application.Services
         /// </summary>
         public void SetGreen()
         {
+            Console.WriteLine("Setze alle LEDs auf Grün.");
             SetColor(Color.Green);
         }
 
