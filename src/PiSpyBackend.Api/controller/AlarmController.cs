@@ -18,8 +18,8 @@ namespace PiSpyBackend.Api.Controllers
         [HttpPut("activate")]
         public Result ActivateAlarm()
         {
-            var username = HttpContext.User.FindFirst("sub")?.Value;
-            var userId = HttpContext.User.FindFirst("nameid")?.Value;
+            var username = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "username_claim")?.Value;
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "id_claim")?.Value;
             if (username == null || userId == null)
             {
                 return Result.Fail("Failed to get the user id from the token");
@@ -29,7 +29,7 @@ namespace PiSpyBackend.Api.Controllers
                 _alarmService.TurnOnAlarm(username, id);
                 return Result.Ok();
             }
-            else 
+            else
             {
                 return Result.Fail("Failed to parse the user id");
             }
@@ -39,8 +39,8 @@ namespace PiSpyBackend.Api.Controllers
         [HttpPut("deactivate")]
         public void DeactivateAlarm()
         {
-            var username = HttpContext.User.FindFirst("sub")?.Value;
-            var userId = HttpContext.User.FindFirst("nameid")?.Value;
+            var username = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "username_claim")?.Value;
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "id_claim")?.Value;
             if (username == null || userId == null)
             {
                 return;

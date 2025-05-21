@@ -30,8 +30,8 @@ namespace PiSpyBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EventId"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
+                    b.Property<int>("EventType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("KeyId")
                         .HasColumnType("text");
@@ -62,6 +62,26 @@ namespace PiSpyBackend.Infrastructure.Migrations
                     b.HasKey("KeyId");
 
                     b.ToTable("keys");
+                });
+
+            modelBuilder.Entity("PiSpyBackend.Domain.Models.PictureDTO", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Pictures");
                 });
 
             modelBuilder.Entity("PiSpyBackend.Domain.User", b =>

@@ -1,5 +1,6 @@
 using FluentResults;
 using PiSpyBackend.Domain;
+using PiSpyBackend.Domain.Models;
 using PiSpyBackend.Infrastructure;
 
 namespace PiSpyBackend.Application
@@ -14,14 +15,24 @@ namespace PiSpyBackend.Application
             this.Repo = new DbUserRepository(context);
         }
 
-        public Result<User[]> GetAllUsers()
+        public Result<UserDto[]> GetAllUsers()
         {
             var users = Repo.GetAllUsers();
             if (users.IsFailed)
             {
                 return Result.Fail("Failed to get all users");
             }
-            return Result.Ok(users.Value);
+
+            var userDtos = new List<UserDto>();
+            foreach (var user in users.Value)
+            {
+                userDtos.Add(new UserDto()
+                {
+                    Id = user.Id,
+                    Username = user.Username
+                });
+            }
+            return Result.Ok(userDtos.ToArray());
         }
 
         public Result CreateUser(User blankUser)
@@ -48,6 +59,26 @@ namespace PiSpyBackend.Application
             return Result.Ok();
         }
 
+        public Result ChangeUsername(int userId, string newUsername)
+        {
+            if (userId == 0 || userId < 0 || string.IsNullOrEmpty(newUsername))
+            {
+                return Result.Fail("Failed to change password of user because the given id was wrong");
+            }
+            var userToUpdate = Repo.FindUserFromId(userId);
+            if (userToUpdate.IsFailed || userToUpdate.Value == null)
+            {
+                return Result.Fail("Failed to change password the user does not exsist");
+            }
+
+            var result = Repo.UpdateData(userId, null, newUsername);
+            if (result.IsFailed)
+            {
+                return Result.Fail("Failed to change password of user");
+            }
+            return Result.Ok();
+        }
+
         public Result ChangeUserPassword(int userId, string newPassword)
         {
             if (userId == 0 || userId < 0 || string.IsNullOrEmpty(newPassword))
@@ -60,7 +91,7 @@ namespace PiSpyBackend.Application
                 return Result.Fail("Failed to change password the user does not exsist");
             }
 
-            var result = Repo.UpdateData(userId, BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 12));
+            var result = Repo.UpdateData(userId, BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 12), null);
             if (result.IsFailed)
             {
                 return Result.Fail("Failed to change password of user");

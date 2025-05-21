@@ -1,11 +1,11 @@
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PiSpyBackend.Application;
 
 namespace PiSpyBackend.Api.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
     public class KeyController : ControllerBase
     {
@@ -44,7 +44,7 @@ namespace PiSpyBackend.Api.Controllers
             }
             return Result.Ok(keys.Value);
         }
-        
+
     }
-    
+
 }

@@ -1,6 +1,8 @@
 using System.Numerics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PiSpyBackend.Application.Services;
+using PiSpyBackend.Domain;
 using PiSpyBackend.Domain.Interfaces;
 using PiSpyBackend.Infrastructure;
 
@@ -16,24 +18,30 @@ namespace PiSpyBackend.Application
         private LedRingService LedRingService { get; set; }
         private MapKeyToUserService KeyService { get; set; }
         private IServiceScopeFactory ScopeFactory { get; set; }
+        private EventService EventService { get; set; }
+        private CamService camService { get; set; }
+        private PictureService pictureService { get; set; }
 
         // Dieses CancellationTokenSource steuert alle sensorbezogenen Tasks.
         private CancellationTokenSource _sensorCts;
 
-        public AlarmService(IServiceScopeFactory scopeFactory, IGpioControllerService gpioController)
+        public AlarmService(IServiceScopeFactory scopeFactory, IGpioControllerService gpioController, EventService eventService, PictureService _pictureService)
         {
+            // DI-Container für die Verwendung in der Klasse
             ScopeFactory = scopeFactory;
             _sensorCts = new CancellationTokenSource();
+            EventService = eventService;
             // Initialisiere die Services – ggf. auch über DI injizierbar machen
             RfidService = new RfidService();
             MotionService = new MotionService(gpioController);
             ButtonService = new ButtonService(gpioController);
             LedRingService = new LedRingService();
+            camService = new CamService();
             var scope = ScopeFactory.CreateScope();
             KeyService = new MapKeyToUserService(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+            pictureService = _pictureService;
 
-            // Beim Start wird die grüne LED aktiviert.
-            LedRingService.ActivateGreenLed();
+            LedRingService.SetGreen();
         }
 
         /// <summary>
@@ -71,6 +79,8 @@ namespace PiSpyBackend.Application
                     continue;
                 }
 
+                // Hier RFID Hard coden
+
                 var findUserFromKey = KeyService.FindUserFromKey(result.ToString());
                 if (findUserFromKey.IsFailed || string.IsNullOrEmpty(findUserFromKey.Value.Username))
                 {
@@ -93,15 +103,18 @@ namespace PiSpyBackend.Application
         /// <summary>
         /// Löst den Alarm aus (wird z. B. von einem Sensor aufgerufen).
         /// </summary>
-        private void ActivateAlarm(string sensorName)
+        private void ActivateAlarm(Eventtype eventtype)
         {
-            // Falls der Alarm aktiv ist, wird ein Event hinzugefügt.
             if (AlarmState)
             {
                 using var scope = ScopeFactory.CreateScope();
-                var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
-                var eventDescription = $"Alarm ausgelöst – Sensor '{sensorName}' hat Alarm gegeben!";
-                eventService.AddEvent(description: eventDescription, keyId: null, userId: 0);
+                EventService.AddEvent(eventtype: eventtype, keyId: null, userId: 0);
+                if (eventtype == Eventtype.MotionDetected)
+                {
+                    var fileName = camService.TakePicture();
+                    pictureService.AddPicture("/" + fileName);
+                }
+                LedRingService.BlinkRed(TimeSpan.FromSeconds(5));
             }
         }
 
@@ -111,12 +124,10 @@ namespace PiSpyBackend.Application
         public void TurnOnAlarm(string username, int userId)
         {
             using var scope = ScopeFactory.CreateScope();
-            var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
             AlarmState = true;
-            var eventDescription = $"Alarm wurde eingeschaltet von: {username}";
-            eventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
+            EventService.AddEvent(eventtype: Eventtype.AlarmActivated, keyId: null, userId: userId);
             StartSensors();
-            LedRingService.ActivateRedLed();
+            LedRingService.SetRed();
         }
 
         /// <summary>
@@ -125,12 +136,10 @@ namespace PiSpyBackend.Application
         public void TurnOffAlarm(string username, int userId)
         {
             using var scope = ScopeFactory.CreateScope();
-            var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
             AlarmState = false;
-            var eventDescription = $"Alarm wurde ausgeschaltet von: {username}";
-            eventService.AddEvent(description: eventDescription, keyId: null, userId: userId);
+            EventService.AddEvent(eventtype: Eventtype.AlarmDeactivated, keyId: null, userId: userId);
             StopSensors();
-            LedRingService.ActivateGreenLed();
+            LedRingService.SetGreen();
         }
 
         /// <summary>
@@ -177,7 +186,7 @@ namespace PiSpyBackend.Application
                 var motionDetected = (bool)result;
                 if (motionDetected)
                 {
-                    ActivateAlarm("Bewegungsmelder");
+                    ActivateAlarm(Eventtype.MotionDetected);
                 }
             }
             else if (sensorService is ButtonService)
@@ -185,7 +194,7 @@ namespace PiSpyBackend.Application
                 var buttonPressed = (bool)result;
                 if (buttonPressed)
                 {
-                    ActivateAlarm("Fensterbruchsensor");
+                    ActivateAlarm(Eventtype.WindowOpened);
                 }
             }
         }

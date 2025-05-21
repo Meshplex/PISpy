@@ -27,7 +27,8 @@ namespace PiSpyBackend.Infrastructure
             return Result.Ok(userToFind);
         }
 
-        public Result<User> FindUserFromId(int id){
+        public Result<User> FindUserFromId(int id)
+        {
             var userToFind = context.Users.FirstOrDefault(userToFind => userToFind.Id == id);
             if (userToFind == null)
             {
@@ -58,15 +59,23 @@ namespace PiSpyBackend.Infrastructure
             return Result.Ok();
         }
 
-        public Result UpdateData(int userId, string password)
+        public Result UpdateData(int userId, string? password, string? username)
         {
-             // Check if the given User ID is Matching to a user account
+            // Check if the given User ID is Matching to a user account
             var userToUpdate = context.Users.FirstOrDefault(userToDel => userToDel.Id == userId);
             if (userToUpdate is null)
             {
                 return Result.Fail("Es wurde kein nutzer mit der gegebenen ID gefunden");
             }
-            userToUpdate.Password = password;
+            if (!string.IsNullOrEmpty(password))
+            {
+                userToUpdate.Password = password;
+            }
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                userToUpdate.Username = username;
+            }
             context.Users.Update(userToUpdate);
             context.SaveChanges();
             return Result.Ok();

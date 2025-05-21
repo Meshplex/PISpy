@@ -20,8 +20,8 @@ public class JwtTokenService
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.NameId, id.ToString())
+            new Claim("username_claim", username),
+            new Claim("id_claim", id.ToString())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));

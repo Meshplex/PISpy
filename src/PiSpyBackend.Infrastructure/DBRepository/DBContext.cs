@@ -2,6 +2,7 @@ using PiSpyBackend.Domain;
 using Microsoft.EntityFrameworkCore;
 using System;
 using Npgsql;
+using PiSpyBackend.Domain.Models;
 
 namespace PiSpyBackend.Infrastructure
 {
@@ -13,6 +14,7 @@ namespace PiSpyBackend.Infrastructure
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Key> keys { get; set; }
+        public DbSet<PictureDTO> Pictures { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

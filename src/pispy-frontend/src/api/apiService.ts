@@ -1,9 +1,7 @@
-// src/api/apiService.js
+export const API_BASE = 'http://localhost:5272/api';
 
-const API_BASE = 'http://localhost:5272/api';
-
-const getAuthHeaders = (isJson = false) => {
-  const headers = {
+export const getAuthHeaders = (isJson = false) => {
+  const headers: { Authorization: string; 'Content-Type'?: string } = {
     Authorization: 'Bearer ' + localStorage.getItem('token'),
   };
   if (isJson) {
@@ -34,7 +32,7 @@ export const fetchUsers = async () => {
   return data.value;
 };
 
-export const changeUserPassword = async (userId, newPassword) => {
+export const changeUserPassword = async (userId: string, newPassword: string): Promise<void> => {
   const res = await fetch(`${API_BASE}/User/update`, {
     method: 'POST',
     headers: getAuthHeaders(true),
@@ -45,7 +43,7 @@ export const changeUserPassword = async (userId, newPassword) => {
   }
 };
 
-export const deleteUser = async (userId) => {
+export const deleteUser = async (userId: string): Promise<void> => {
   const res = await fetch(`${API_BASE}/User/delete`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
@@ -56,7 +54,7 @@ export const deleteUser = async (userId) => {
   }
 };
 
-export const AddKeyToUser = async (newString) => {
+export const AddKeyToUser = async (newString: string) => {
   const res = await fetch(`${API_BASE}/Key/mapkeytouser/${newString}`, {
     method: 'POST',
     headers: getAuthHeaders(true),
@@ -66,27 +64,7 @@ export const AddKeyToUser = async (newString) => {
   }
 };
 
-export const setAlarmStatus = async (isArmed) => {
-  if (isArmed === true) {
-    const res = await fetch(`${API_BASE}/Alarm/activate`, {
-      method: 'PUT',
-      headers: getAuthHeaders(true),
-    });
-    console.log(res);
-    if (!res.ok) {
-      throw new Error('Konnte Alarmstatus nicht ändern.');
-    }
-  } else if (isArmed === false) {
-    const res = await fetch(`${API_BASE}/Alarm/deactivate`, {
-      method: 'PUT',
-      headers: getAuthHeaders(true),
-    });
-    console.log(res);
-    if (!res.ok) {
-      throw new Error('Konnte Alarmstatus nicht ändern.');
-    }
-  }
-};
+
 
 export async function fetchUserKeys() {
   const res = await fetch(`${API_BASE}/Key/getkeysFromUser`, {
@@ -100,7 +78,7 @@ export async function fetchUserKeys() {
   return data.value;
 }
 
-export async function deleteUserKey(keyId) {
+export async function deleteUserKey(keyId: number) {
   const res = await fetch(`${API_BASE}/Key/removekey/${keyId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(true),
@@ -111,14 +89,14 @@ export async function deleteUserKey(keyId) {
 }
 
 // Funktion zum Hinzufügen eines neuen Schlüssels
-export async function addUserKey(userId, keyValue) {
-  const response = await fetch(`/api/users/${userId}/keys`, {
+export async function addUserKey(userId: number, keyValue: string) {
+  const res = await fetch(`${API_BASE}/Key/addkeytouser`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: keyValue }),
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ userId, keyValue }),
   });
-  if (!response.ok) {
+  if (!res.ok) {
     throw new Error('Fehler beim Hinzufügen des Schlüssels');
   }
-  return await response.json();
+  return await res.json();
 }

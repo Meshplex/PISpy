@@ -22,13 +22,13 @@ namespace PiSpyBackend.Api.Controllers
 
         [HttpGet("getall")]
         [Authorize]
-        public Result<User[]> GetAllUsers()
+        public Result<UserDto[]> GetAllUsers()
         {
             var result = _userService.GetAllUsers();
             Console.WriteLine(result.Value);
             if (result.IsFailed)
             {
-                return Result.Fail<User[]>("Failed to get all users");
+                return Result.Fail<UserDto[]>("Failed to get all users");
             }
             return Result.Ok(result.Value);
         }
@@ -66,9 +66,25 @@ namespace PiSpyBackend.Api.Controllers
             return Ok(new { Token = _jwtTokenService.GenerateToken(result.Value.Username!, result.Value.Id) });
         }
 
-        [HttpPost("update")]
+        [HttpPost("update/username")]
         [Authorize]
-        public Result UpdateUser([FromBody] UpdateUserRequest request)
+        public Result UpdateUsername([FromBody] UpdateUserRequest request)
+        {
+            if (request.UserId <= 0 || string.IsNullOrEmpty(request.NewUsername))
+            {
+                return Result.Fail("Empty input");
+            }
+            var result = _userService.ChangeUsername(request.UserId, request.NewUsername);
+            if (result.IsFailed)
+            {
+                return Result.Fail("Empty input");
+            }
+            return Result.Ok();
+        }
+
+        [HttpPost("update/password")]
+        [Authorize]
+        public Result UpdatePassword([FromBody] UpdateUserRequest request)
         {
             if (request.UserId <= 0 || string.IsNullOrEmpty(request.NewPassword))
             {

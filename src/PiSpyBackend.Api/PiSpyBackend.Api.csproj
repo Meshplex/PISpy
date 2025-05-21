@@ -17,7 +17,8 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../PiSpyBackend.Application/PiSpyBackend.Application.csproj"/>
+    <ProjectReference Include="../PiSpyBackend.Application/PiSpyBackend.Application.csproj" />
+    <ProjectReference Include="../PiSpyBackend.Domain/PiSpyBackend.Domain.csproj" />
   </ItemGroup>
 
 </Project>

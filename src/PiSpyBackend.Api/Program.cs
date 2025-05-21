@@ -1,6 +1,7 @@
 using System.Device.Gpio;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
-using PiSpyBackend.Api.Services;
+using PiSpyBackend.Api.ApiService;
 using PiSpyBackend.Application;
 using PiSpyBackend.Application.Services;
 using PiSpyBackend.Domain.Interfaces;
@@ -17,6 +18,7 @@ builder.Services.AddSingleton(new JwtTokenService(
 
 builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<PictureService>();
 builder.Services.AddScoped<MapKeyToUserService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MapKeyToUserService>();
@@ -31,9 +33,10 @@ builder.Services.AddSingleton<IGpioControllerService>(sp =>
         return new MockGpioControllerService();
     }
 });
-builder.Services.AddSingleton<AlarmService>();
+builder.Services.AddScoped<AlarmService>();
 builder.Services.AddSignalR();
-builder.Services.AddHostedService<EventNotificationService>();
+builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
+builder.Services.AddScoped<PictureService>();
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
@@ -56,7 +59,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactLocalhost", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5555", "https://localhost:5173", "http://localhost:5173", "http://localhost:5272")
+            .WithOrigins("http://localhost:4173", "https://localhost:5173", "http://localhost:5173", "http://localhost:5272")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -104,5 +107,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<AlarmHub>("/alarmHub");
+var imgFolder = Path.Combine(builder.Environment.ContentRootPath, "img");
+Console.WriteLine($"Image folder: {imgFolder}");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(imgFolder),
+    RequestPath = "/images"
+});
+
 
 app.Run();
